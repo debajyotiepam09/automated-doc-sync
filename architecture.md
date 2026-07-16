@@ -66,3 +66,14 @@ automated-doc-sync/
 ├── requirements.md
 ├── architecture.md
 └── package.json
+
+## Updates from Design Review
+
+- Change Detector uses Octokit Compare API to fetch changed files
+- Sync Engine handles both page creation and updates
+- All API calls include try/catch error handling
+- Swagger/OpenAPI files converted to Markdown before Wiki sync
+- Deleted files result in [DEPRECATED] tag on Wiki page
+- GitHub Actions workflow includes concurrency lock
+- Test job runs before sync job in CI pipeline
+- index.js includes pre-flight Wiki access check
