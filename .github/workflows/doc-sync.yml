@@ -1,0 +1,67 @@
+name: doc-sync
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      base_sha:
+        description: 'Base commit SHA to diff from (required for manual/backfill runs)'
+        required: true
+        type: string
+      head_sha:
+        description: 'Head commit SHA to diff to (defaults to the current commit)'
+        required: false
+        type: string
+
+concurrency:
+  group: doc-sync-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  test:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - name: Dependency audit
+        run: npm audit --audit-level=high
+        continue-on-error: true
+
+  sync:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci
+      - name: Run documentation sync
+        env:
+          DOC_SYNC_TOKEN: ${{ secrets.DOC_SYNC_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          BASE_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.base_sha || github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event_name == 'workflow_dispatch' && (inputs.head_sha || github.sha) || (github.event.pull_request.merge_commit_sha || github.sha) }}
+          GITHUB_SHA: ${{ github.sha }}
+        run: npm run sync
+      - name: Upload sync report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: doc-sync-report-${{ github.run_id }}
+          path: artifacts/doc-sync-report.json
+          if-no-files-found: warn

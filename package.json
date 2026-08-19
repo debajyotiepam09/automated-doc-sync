@@ -1,0 +1,19 @@
+{
+  "name": "automated-doc-sync",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Incremental GitHub Wiki sync for README and OpenAPI changes",
+  "main": "src/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "test": "node --test",
+    "sync": "node src/index.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@octokit/rest": "^21.1.1",
+    "js-yaml": "^4.1.0"
+  }
+}
