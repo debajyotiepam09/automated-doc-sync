@@ -1,33 +1,30 @@
 # Changelog
 
-## [1.0.0] - 2025
+## [0.1.0] - 2026-08-20
 
 ### Added
-- Automated Documentation Sync pipeline
-- GitHub Actions workflow triggered on PR merge to main
-- Change Detector using Octokit Compare API
-- Sync Engine with create/update/deprecate Wiki page logic
-- Markdown Transformer for Swagger/OpenAPI conversion
-- Secret Mask module for PAT redaction in logs
-- Retry module with exponential backoff
-- Wiki Mapper for page title generation
-- Wiki Repo module for git operations
-- Sync Planner for operation planning
-- Config module with environment variable validation
-- 20 unit tests across 5 test files
-- 8 Copilot Agent definitions for full SDLC
-- 11 reusable Copilot Prompt files
-- 5 Copilot Skill definitions
-- Full SDLC documentation
-Step 3 — Commit the New Files
-git add README.md CHANGELOG.md
-git commit -m "docs: add README and CHANGELOG for v1.0.0"
-Step 4 — Push to GitHub
-# Create repo on GitHub first, then:
-git remote add origin https://github.com/YOUR_USERNAME/automated-doc-sync.git
-git branch -M main
-git push -u origin main
-Step 5 — Create Feature Branch & PR
-git checkout -b feature/automated-doc-sync
-git push origin feature/automated-doc-sync
-Then create the PR on GitHub using the PR description from Step 8!
+- Incremental documentation sync pipeline for `README.md` and Swagger/OpenAPI specs
+- `src/changeDetector.js` — Octokit Compare API integration with README and OpenAPI file classification
+- `src/syncPlanner.js` — deterministic sync plan builder (upsert / deprecate / skip) with rename support
+- `src/syncEngine.js` — idempotent wiki page executor with content-hash skip, bounded concurrency, and path-traversal protection
+- `src/markdownTransformer.js` — Markdown renderer and Swagger/OpenAPI-to-Markdown converter
+- `src/wikiMapper.js` — canonical source-to-wiki page path mapping
+- `src/wikiRepo.js` — git transport layer for wiki checkout, commit, and push with PAT redaction
+- `src/retry.js` — bounded exponential backoff with jitter for transient failures
+- `src/secretMask.js` — runtime secret redaction for all log and error output
+- `src/config.js` — strict environment variable loader with fail-closed validation
+- `src/index.js` — orchestration entry point with pre-flight checks and non-zero exit on failure
+- `.github/workflows/doc-sync.yml` — GitHub Actions workflow with test → sync job chain, concurrency lock, and artifact upload
+- 20 unit tests across `changeDetector`, `syncEngine`, `config`, `wikiMapper`, and `wikiRepo`
+- Full SDLC documentation: `requirements.md`, `architecture.md`, `design-review.md`, `impl-plan.md`
+- `AGENTS.md` with Copilot agent definitions, workflow rules, and maintainer notes
+
+### Security
+- PAT redacted from all log output and git error messages via `secretMask`
+- Path traversal protection enforced in `resolveWithinRoot` with test coverage
+- Secrets injected via GitHub Secrets only — never hardcoded or logged
+
+### Architecture
+- Wiki sync uses git transport against `.wiki.git` remote (no REST API dependency)
+- Workflow concurrency lock prevents overlapping sync runs on the same branch
+- Idempotency via SHA-256 content-hash markers embedded in wiki page headers
