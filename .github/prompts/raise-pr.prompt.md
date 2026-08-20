@@ -1,85 +1,88 @@
 ---
-description: "Raise a GitLab Merge Request for a completed feature branch, linking it to the Jira ticket and filling in the MR description. Use when implementation and tests are done and you're ready for review."
-argument-hint: "Enter the story ID and branch name (e.g. 'BAA-101 feature/BAA-101-interactive-tiles')"
-tools: [read, search, gitlab/*, atlassian/*]
+description: "Raise a GitHub Pull Request for the automated-doc-sync pipeline, generating the full PR description using the Agentic SDLC context."
+argument-hint: "Enter the branch name (e.g. 'test/verify-agent-flow')"
+tools: [read, search, run_command]
 ---
 
-<!-- CREATE FRAMEWORK — Raise Merge Request -->
-
 ## C — Context
-
-You are raising a Merge Request for the **SJ Dental Care Booking App**.
-- Story: **${{ input:story_id }}**, Branch: **${{ input:branch_name }}**
-- GitLab repo: `git.epam.com/shoban_babumanohar/booking-app`
+You are raising a Pull Request for the 
+**Automated Documentation Sync** pipeline.
+- Branch: `${{ input:branch_name }}`
+- GitHub repo: `debajyotiepam09/automated-doc-sync`
 - Target branch: `main`
-- MR title format: `[BAA-XXX] <type>: <description>` (max 72 chars)
-- Approval required: 1
+- PR title format: `feat: <description>`
 
 ## R — Role
-
-You are a **Developer raising a well-documented MR** that gives reviewers all the context they need.
-A good MR description saves review time and prevents approval delays.
+You are a **Developer completing Step 8 of the Agentic SDLC pipeline**.
+Generate a complete PR description and raise the PR using GitHub CLI.
 
 ## E — Execute
+1. Read these files for context:
+   - requirements.md
+   - architecture.md
+   - impl-plan.md
+   - CHANGELOG.md
+   - package.json
+   - all files in src/
+   - all files in tests/
+   - .github/workflows/doc-sync.yml
 
-1. Fetch the story from Jira (`atlassian` MCP) to get the title, description, and acceptance criteria.
-2. Read the changed files (or fetch the branch diff via `gitlab` MCP) to summarize changes.
-3. Build the MR description from the template below.
-4. Create the MR via `gitlab` MCP with all fields filled.
-5. Add a remote link on the Jira issue pointing to the new MR.
-6. Transition the Jira ticket to `In Review`.
-7. Return the MR URL and Jira ticket URL.
+2. Generate PR description with these 5 sections:
+   - Summary
+   - Changes Made
+   - Test Evidence
+   - Known Limitations
+   - Reviewer Checklist
+
+3. Run this command to create the PR:
+gh pr create
+--title "feat: deliver automated documentation sync pipeline (v0.1.0)"
+--body "<generated description>"
+--base main
+--head ${{ input:branch_name }}
+
+
+4. Return the PR URL.
 
 ## A — Adjust
-
-- MR title MUST start with `[BAA-XXX]` — this is how Jira links are resolved
-- Keep the summary to 2–3 sentences — reviewers should understand in 30 seconds
-- Testing section must reflect tests actually written, not aspirational
-- If UI changed, screenshots or description of visible change is required
-- Do NOT include personal access tokens or secrets in the description
+- Summary MUST reference the User Story from requirements.md
+- Test Evidence MUST show all 20 tests passing
+- Known Limitations MUST match Out of Scope from requirements.md
+- Reviewer Checklist MUST cover all FR and NFR items
+- Never include secrets or tokens in the PR description
 
 ## T — Template
 
 ```markdown
-## Summary
-<2–3 sentences describing what this MR does and why>
+## 📋 Summary
+<2-3 sentences referencing User Story>
 
-## Jira Ticket
-[BAA-XXX](https://your-org.atlassian.net/browse/BAA-XXX) — <Story title>
-
-## Changes
-### Frontend
-- [ ] <component change 1>
-- [ ] <component change 2>
-
-### Backend
-- [ ] <endpoint/controller change>
+## 📁 Changes Made
+### Source Code
+- `src/` files with reasons
 
 ### Tests
-- [ ] Jest unit tests: `src/__tests__/<Component>.test.jsx`
-- [ ] Playwright E2E: `tests/<scenario>.spec.js`
+- `tests/` files with reasons
 
-## How to Test
-1. `npm install && npm run dev` — start frontend on :5000
-2. `cd server && npm install && node index.js` — start API on :3001
-3. Navigate to `http://localhost:5000`
-4. <Specific steps matching ACS scenarios>
+### CI/CD
+- `.github/workflows/` with reasons
 
-## Screenshots (UI changes)
-<Attach screenshot or describe the before/after>
+### Documentation
+- `*.md` files with reasons
 
-## Checklist
-- [ ] `npm run lint` passes
-- [ ] All unit tests pass
-- [ ] Playwright E2E tests pass
-- [ ] No console.log left in production code
-- [ ] API responses use `{ success, data?, message? }` shape
-```
+## 🧪 Test Evidence
+<full npm test output>
 
-## E — Example
+## ⚠️ Known Limitations
+<from requirements.md Out of Scope>
 
-**Input**: BAA-101, feature/BAA-101-interactive-tiles
+## ✅ Reviewer Checklist
+- [ ] FR-01 through FR-06 verified
+- [ ] NFR-01 through NFR-06 verified
+- [ ] Security checks passed
+- [ ] All 20 tests passing
+- [ ] CI/CD workflow verified
+- [ ] Documentation complete
+- [ ] Copilot Agent artifacts present
 
-**Output**: MR created at `git.epam.com/.../merge_requests/12`
-Title: `[BAA-101] feat: interactive dashboard tile filters`
-Jira BAA-101 remote link added. Status transitioned to `In Review`.
+---
